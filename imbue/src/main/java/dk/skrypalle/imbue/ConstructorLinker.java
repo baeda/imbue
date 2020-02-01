@@ -10,9 +10,16 @@ import java.util.stream.Stream;
 
 final class ConstructorLinker {
 
-    private static final Map<Class<?>, Object> singletons = new ConcurrentHashMap<>();
+    private final Imbue imbue;
+    private final Map<Class<?>, Object> singletons;
 
-    static <T> T newInstance(Class<T> concreteType) {
+    ConstructorLinker(Imbue imbue) {
+        this.imbue = imbue;
+
+        singletons = new ConcurrentHashMap<>();
+    }
+
+    <T> T newInstance(Class<T> concreteType) {
         var constructorInfo = getConstructorInfo(concreteType);
         var type = constructorInfo.getType();
 
@@ -49,7 +56,10 @@ final class ConstructorLinker {
 
         try {
 
-            constructor.setAccessible(true);
+            if (ReflectionUtils.isNotPublic(constructor)) {
+                constructor.setAccessible(true);
+            }
+
             return constructor.newInstance(args);
 
         } catch (Throwable e) {
@@ -57,7 +67,7 @@ final class ConstructorLinker {
         }
     }
 
-    private static <T> ConstructorInfo<T> getConstructorInfo(Class<T> type) {
+    private <T> ConstructorInfo<T> getConstructorInfo(Class<T> type) {
         Constructor<T> defaultConstructor = null;
         var linkableConstructors = new ArrayList<Constructor<T>>();
         for (var constructor : getDeclaredConstructors(type)) {
@@ -75,25 +85,23 @@ final class ConstructorLinker {
 
         if (linkableConstructors.size() == 1) {
             var constructor = linkableConstructors.get(0);
-            var args = ReflectionUtils.collectArgs(constructor);
+            var args = ReflectionUtils.collectArgs(imbue, constructor);
             return new ConstructorInfo<>(constructor, args);
         }
 
         throw new IllegalStateException();
     }
 
-    private static <T> List<Constructor<T>> getDeclaredConstructors(Class<T> type) {
+    private <T> List<Constructor<T>> getDeclaredConstructors(Class<T> type) {
         return Stream.of(type.getDeclaredConstructors())
-                .map(ConstructorLinker::<T>asActualConstructor)
+                .map(this::<T>asActualConstructor)
                 .collect(Collectors.toList());
     }
 
-    private static <T> Constructor<T> asActualConstructor(Constructor<?> constructor) {
+    private <T> Constructor<T> asActualConstructor(Constructor<?> constructor) {
         @SuppressWarnings("unchecked")
         var cast = (Constructor<T>) constructor;
         return cast;
     }
-
-    private ConstructorLinker() { /* static utility */ }
 
 }

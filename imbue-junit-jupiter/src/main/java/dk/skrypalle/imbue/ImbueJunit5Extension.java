@@ -7,7 +7,7 @@ public class ImbueJunit5Extension implements TestInstancePostProcessor {
 
     @Override
     public void postProcessTestInstance(Object testInstance, ExtensionContext context) {
-        Imbue.link(testInstance);
+        new Imbue().link(testInstance);
     }
 
 }

@@ -65,19 +65,19 @@ final class ReflectionUtils {
         return count > 1;
     }
 
-    static Object[] collectArgs(Executable executable) {
+    static Object[] collectArgs(Imbue imbue, Executable executable) {
         var argsList = new ArrayList<>();
         for (Type type : executable.getGenericParameterTypes()) {
             if (isAssignableFrom(type, ParameterizedType.class)) {
                 ParameterizedType parameterizedType = (ParameterizedType) type;
                 var rawType = parameterizedType.getRawType();
                 if (isAssignableFrom(rawType, Supplier.class)) {
-                    argsList.add(Imbue.findSupplierLink(parameterizedType));
+                    argsList.add(imbue.findSupplierLink(parameterizedType));
                 } else if (isAssignableFrom(rawType, Iterable.class)) {
-                    argsList.add(Imbue.findIterableLink(parameterizedType));
+                    argsList.add(imbue.findIterableLink(parameterizedType));
                 }
             } else if (type instanceof Class<?>) {
-                argsList.add(Imbue.findLink((Class<?>) type));
+                argsList.add(imbue.findLink((Class<?>) type));
             }
         }
 

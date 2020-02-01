@@ -11,17 +11,23 @@ import static dk.skrypalle.imbue.ReflectionUtils.isAssignableFrom;
 
 public final class Imbue {
 
+    private final Linker linker;
+
+    public Imbue() {
+        linker = new Linker(this);
+    }
+
     /**
      * TODO JAVADOC.
      */
-    public static <T> T findLink(Class<T> type) {
+    public <T> T findLink(Class<T> type) {
         return findLink(type, null);
     }
 
     /**
      * TODO JAVADOC.
      */
-    public static <T> T findLink(Class<T> type, Type genericType) {
+    public <T> T findLink(Class<T> type, Type genericType) {
         var allLinks = findAllLinks(type, genericType);
         if (allLinks.isEmpty()) {
             throw new ImbueUnsatisfiedLinkError("unsatisfied link for type '%s'", type);
@@ -40,14 +46,14 @@ public final class Imbue {
     /**
      * TODO JAVADOC.
      */
-    public static <T> List<T> findAllLinks(Class<T> type) {
+    public <T> List<T> findAllLinks(Class<T> type) {
         return findAllLinks(type, null);
     }
 
     /**
      * TODO JAVADOC.
      */
-    public static <T> List<T> findAllLinks(Class<T> type, Type genericType) {
+    public <T> List<T> findAllLinks(Class<T> type, Type genericType) {
         if (isAssignableFrom(genericType, ParameterizedType.class)) {
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             if (isAssignableFrom(type, Supplier.class)) {
@@ -60,32 +66,30 @@ public final class Imbue {
 
         return Discovery.getLeafClassesOf(type).stream()
                 .filter(ReflectionUtils::isProperlyScoped)
-                .map(Linker::newInstance)
+                .map(linker::newInstance)
                 .collect(Collectors.toUnmodifiableList());
     }
 
     /**
      * TODO JAVADOC.
      */
-    public static void link(Object instance) {
-        SetterLinker.link(instance);
-        FieldLinker.link(instance);
+    public <T> T link(T instance) {
+        linker.link(instance);
+        return instance;
     }
 
     @SuppressWarnings("unchecked")
-    static <T> T findSupplierLink(ParameterizedType parameterizedType) {
+    <T> T findSupplierLink(ParameterizedType parameterizedType) {
         var actualTypeArgument = (Class<T>) parameterizedType.getActualTypeArguments()[0];
-        Supplier<Object> supplier = () -> Imbue.findLink(actualTypeArgument);
+        Supplier<Object> supplier = () -> findLink(actualTypeArgument);
         return (T) supplier;
     }
 
     @SuppressWarnings("unchecked")
-    static <T> T findIterableLink(ParameterizedType parameterizedType) {
+    <T> T findIterableLink(ParameterizedType parameterizedType) {
         var actualTypeArgument = (Class<T>) parameterizedType.getActualTypeArguments()[0];
-        Iterable<T> iterable = () -> Imbue.findAllLinks(actualTypeArgument).iterator();
+        Iterable<T> iterable = () -> findAllLinks(actualTypeArgument).iterator();
         return (T) iterable;
     }
-
-    private Imbue() { /* static utility */ }
 
 }
