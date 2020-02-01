@@ -34,8 +34,8 @@
         </dependency>
         <dependency>
             <groupId>dk.skrypalle.imbue</groupId>
-            <artifactId>test-app</artifactId>
-            <scope>test</scope>
+            <artifactId>test-impl</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

@@ -3,30 +3,13 @@ package dk.skrypalle.imbue;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Executable;
-import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 final class ReflectionUtils {
-
-    private static final List<Class<? extends Annotation>> ALLOWED_SCOPES = List.of(
-            Dependent.class,
-            Singleton.class
-    );
-
-    private static final Logger log = LoggerFactory.getLogger();
-
-    static List<Class<? extends Annotation>> getAllowedScopes() {
-        return ALLOWED_SCOPES;
-    }
-
-    static boolean isNotPublic(Member member) {
-        return !Modifier.isPublic(member.getModifiers());
-    }
 
     static boolean isAssignableFrom(Type type, Class<?> baseClass) {
         if (type == null || baseClass == null) {
@@ -45,7 +28,7 @@ final class ReflectionUtils {
 
     static boolean isProperlyScoped(AnnotatedElement element) {
         int count = 0;
-        for (Class<? extends Annotation> annotation : getAllowedScopes()) {
+        for (Class<? extends Annotation> annotation : Discovery.getAllScopes()) {
             if (element.isAnnotationPresent(annotation)) {
                 count++;
             }
@@ -54,15 +37,15 @@ final class ReflectionUtils {
         return count == 1;
     }
 
-    static boolean isMoreThanOneScopePresent(AnnotatedElement element) {
-        int count = 0;
-        for (Class<? extends Annotation> annotation : getAllowedScopes()) {
-            if (element.isAnnotationPresent(annotation)) {
-                count++;
-            }
+    static Class<? extends Annotation> findScope(AnnotatedElement element) {
+        var scopes = Discovery.getAllScopes().stream()
+                .filter(element::isAnnotationPresent)
+                .collect(Collectors.toList());
+        if (scopes.size() != 1) {
+            return null;
         }
 
-        return count > 1;
+        return scopes.get(0);
     }
 
     static Object[] collectArgs(Imbue imbue, Executable executable) {

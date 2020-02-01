@@ -20,9 +20,7 @@ final class SetterLinker {
         for (Method setter : linkableSetters) {
             try {
 
-                if (ReflectionUtils.isNotPublic(setter)) {
-                    setter.setAccessible(true);
-                }
+                setter.setAccessible(true);
                 setter.invoke(instance, ReflectionUtils.collectArgs(imbue, setter));
 
             } catch (ReflectiveOperationException e) {

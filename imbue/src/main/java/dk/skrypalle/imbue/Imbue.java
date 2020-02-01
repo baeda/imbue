@@ -9,10 +9,16 @@ import java.util.stream.Collectors;
 
 import static dk.skrypalle.imbue.ReflectionUtils.isAssignableFrom;
 
+/**
+ * TODO JAVADOC.
+ */
 public final class Imbue {
 
     private final Linker linker;
 
+    /**
+     * TODO JAVADOC.
+     */
     public Imbue() {
         linker = new Linker(this);
     }
@@ -56,10 +62,10 @@ public final class Imbue {
     public <T> List<T> findAllLinks(Class<T> type, Type genericType) {
         if (isAssignableFrom(genericType, ParameterizedType.class)) {
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
-            if (isAssignableFrom(type, Supplier.class)) {
+            if (type == Supplier.class) {
                 return Collections.singletonList(findSupplierLink(parameterizedType));
             }
-            if (isAssignableFrom(type, Iterable.class)) {
+            if (type == Iterable.class) {
                 return Collections.singletonList(findIterableLink(parameterizedType));
             }
         }
@@ -80,16 +86,38 @@ public final class Imbue {
 
     @SuppressWarnings("unchecked")
     <T> T findSupplierLink(ParameterizedType parameterizedType) {
-        var actualTypeArgument = (Class<T>) parameterizedType.getActualTypeArguments()[0];
-        Supplier<Object> supplier = () -> findLink(actualTypeArgument);
-        return (T) supplier;
+        var actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
+        if (actualTypeArgument instanceof Class<?>) {
+            Supplier<T> supplier = () -> findLink((Class<T>) actualTypeArgument);
+            return (T) supplier;
+        } else if (isAssignableFrom(actualTypeArgument, ParameterizedType.class)) {
+            var nestedParameterizedType = (ParameterizedType) actualTypeArgument;
+            Supplier<T> supplier = () -> findLink(
+                    (Class<T>) nestedParameterizedType.getRawType(),
+                    nestedParameterizedType
+            );
+            return (T) supplier;
+        }
+
+        throw new ImbueLinkingError("failed to determine proper linkage of %s", parameterizedType);
     }
 
     @SuppressWarnings("unchecked")
     <T> T findIterableLink(ParameterizedType parameterizedType) {
-        var actualTypeArgument = (Class<T>) parameterizedType.getActualTypeArguments()[0];
-        Iterable<T> iterable = () -> findAllLinks(actualTypeArgument).iterator();
-        return (T) iterable;
+        var actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
+        if (actualTypeArgument instanceof Class<?>) {
+            Iterable<T> iterable = () -> findAllLinks((Class<T>) actualTypeArgument).iterator();
+            return (T) iterable;
+        } else if (isAssignableFrom(actualTypeArgument, ParameterizedType.class)) {
+            var nestedParameterizedType = (ParameterizedType) actualTypeArgument;
+            Iterable<T> iterable = () -> findAllLinks(
+                    (Class<T>) nestedParameterizedType.getRawType(),
+                    nestedParameterizedType
+            ).iterator();
+            return (T) iterable;
+        }
+
+        throw new ImbueLinkingError("failed to determine proper linkage of %s", parameterizedType);
     }
 
 }

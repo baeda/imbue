@@ -1,5 +1,7 @@
 package dk.skrypalle.imbue;
 
+import dk.skrypalle.imbue.ScopeHandler.HandlesScope;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,43 +13,63 @@ import java.util.stream.Stream;
 final class ConstructorLinker {
 
     private final Imbue imbue;
-    private final Map<Class<?>, Object> singletons;
+    private final Map<Class<? extends ScopeHandler>, ScopeHandler> scopeHandlers;
 
     ConstructorLinker(Imbue imbue) {
         this.imbue = imbue;
 
-        singletons = new ConcurrentHashMap<>();
+        scopeHandlers = new ConcurrentHashMap<>();
     }
 
     <T> T newInstance(Class<T> concreteType) {
-        var constructorInfo = getConstructorInfo(concreteType);
-        var type = constructorInfo.getType();
-
-        if (ReflectionUtils.isMoreThanOneScopePresent(type)) {
+        var scope = ReflectionUtils.findScope(concreteType);
+        if (scope == null) {
             throw new ImbueScopeError(
                     "type '%s' must be annotated with exactly one of %s",
-                    type,
-                    ReflectionUtils.getAllowedScopes()
+                    concreteType,
+                    Discovery.getAllScopes()
             );
         }
 
-        if (type.isAnnotationPresent(Dependent.class)) {
-            return newInstanceOrFail(constructorInfo);
+        var scopeHandlers = Discovery.getLeafClassesOf(ScopeHandler.class).stream()
+                .filter(handlerClass -> {
+                    var handles = handlerClass.getAnnotation(HandlesScope.class);
+                    if (handles == null) {
+                        throw new ImbueScopeError(
+                                "scope-handler '%s' is not annotated with %s",
+                                handlerClass,
+                                HandlesScope.class
+                        );
+                    }
+                    return handles.value() == scope;
+                })
+                .collect(Collectors.toList());
+
+        if (scopeHandlers.isEmpty()) {
+            throw new ImbueScopeError("no scope-handler found for scope '%s'", scope);
         }
-        if (type.isAnnotationPresent(Singleton.class)) {
-            @SuppressWarnings("unchecked")
-            T instance = (T) singletons.computeIfAbsent(
-                    type,
-                    t -> newInstanceOrFail(constructorInfo)
+        if (scopeHandlers.size() != 1) {
+            throw new ImbueScopeError(
+                    "more than one scope-handler found for scope '%s': %s",
+                    scope,
+                    scopeHandlers
             );
-            return instance;
         }
 
-        throw new ImbueScopeError(
-                "type '%s' was eligible for linking but was not annotated with a proper scope (%s)",
-                type,
-                ReflectionUtils.getAllowedScopes()
-        );
+        var scopeHandler = getScopeHandler(scopeHandlers.get(0));
+        return scopeHandler.supplyInstance(concreteType, this::newInstanceOrFail);
+    }
+
+    private ScopeHandler getScopeHandler(Class<? extends ScopeHandler> scopeHandlerClass) {
+        return scopeHandlers.computeIfAbsent(scopeHandlerClass, clazz -> {
+            var constructorInfo = getConstructorInfo(clazz);
+            var scopeHandler = newInstanceOrFail(constructorInfo);
+            return imbue.link(scopeHandler);
+        });
+    }
+
+    private <T> T newInstanceOrFail(Class<T> type) {
+        return newInstanceOrFail(getConstructorInfo(type));
     }
 
     private static <T> T newInstanceOrFail(ConstructorInfo<T> constructorInfo) {
@@ -56,10 +78,7 @@ final class ConstructorLinker {
 
         try {
 
-            if (ReflectionUtils.isNotPublic(constructor)) {
-                constructor.setAccessible(true);
-            }
-
+            constructor.setAccessible(true);
             return constructor.newInstance(args);
 
         } catch (Throwable e) {

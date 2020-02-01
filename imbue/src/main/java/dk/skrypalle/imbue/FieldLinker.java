@@ -20,9 +20,7 @@ final class FieldLinker {
         for (Field field : linkableFields) {
             try {
 
-                if (ReflectionUtils.isNotPublic(field)) {
-                    field.setAccessible(true);
-                }
+                field.setAccessible(true);
                 field.set(instance, imbue.findLink(field.getType(), field.getGenericType()));
 
             } catch (ReflectiveOperationException e) {

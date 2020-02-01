@@ -1,9 +1,8 @@
 package dk.skrypalle.imbue;
 
-import dk.skrypalle.imbue.Logger.Level;
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 import static dk.skrypalle.imbue.FileUtils.listFiles;
 import static org.apache.commons.lang3.StringUtils.endsWith;
@@ -26,15 +26,18 @@ final class Discovery {
     private static final String JAVA_CLASS_PATH = "java.class.path";
     private static final List<Class<?>> ALL_CLASSES = TimingUtil.time(
             "class-discovery",
-            Discovery::discoverClasses,
-            Level.INFO
+            Discovery::discoverClasses
+    );
+    private static final List<Class<? extends Annotation>> ALL_SCOPES = TimingUtil.time(
+            "scope-discovery",
+            Discovery::discoverScopes
     );
 
     private static final Map<Class<?>, Object> implMap = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Object> leafMap = new ConcurrentHashMap<>();
 
-    private static List<Class<?>> getAllClasses() {
-        return ALL_CLASSES;
+    static List<Class<? extends Annotation>> getAllScopes() {
+        return ALL_SCOPES;
     }
 
     static <T> List<Class<T>> getImplementationsOf(Class<T> type) {
@@ -55,10 +58,10 @@ final class Discovery {
         return result;
     }
 
-    static List<Class<?>> discoverImplementationsOf(Class<?> type) {
+    private static List<Class<?>> discoverImplementationsOf(Class<?> type) {
         var result = new ArrayList<Class<?>>();
 
-        for (var clazz : getAllClasses()) {
+        for (var clazz : ALL_CLASSES) {
             if (ReflectionUtils.isAssignableFrom(type, clazz)) {
                 System.out.println();
             }
@@ -70,7 +73,7 @@ final class Discovery {
         return result;
     }
 
-    static List<Class<?>> discoverLeafClassesOf(Class<?> type) {
+    private static List<Class<?>> discoverLeafClassesOf(Class<?> type) {
         var implementations = getImplementationsOf(type);
 
         var result = new ArrayList<Class<?>>();
@@ -188,6 +191,16 @@ final class Discovery {
 
     private static boolean endsWithClass(String string) {
         return endsWith(string, ".class");
+    }
+
+    private static List<Class<? extends Annotation>> discoverScopes() {
+        @SuppressWarnings("unchecked")
+        List<Class<? extends Annotation>> result = ALL_CLASSES.stream()
+                .filter(v -> ReflectionUtils.isAssignableFrom(v, Annotation.class))
+                .filter(v -> v.isAnnotationPresent(Scope.class))
+                .map(v -> (Class<? extends Annotation>) v)
+                .collect(Collectors.toUnmodifiableList());
+        return result;
     }
 
     private Discovery() { /* static utility */ }

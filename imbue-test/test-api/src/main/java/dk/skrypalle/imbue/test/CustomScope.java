@@ -1,17 +1,14 @@
-package dk.skrypalle.imbue;
+package dk.skrypalle.imbue.test;
 
-import java.lang.annotation.Documented;
+import dk.skrypalle.imbue.Scope;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * TODO JAVADOC.
- */
-@Documented
 @Scope
-@Retention(RUNTIME)
 @Target(TYPE)
-public @interface Dependent {}
+@Retention(RUNTIME)
+public @interface CustomScope {}

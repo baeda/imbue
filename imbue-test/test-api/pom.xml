@@ -13,4 +13,11 @@
 
     <artifactId>test-api</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>dk.skrypalle.imbue</groupId>
+            <artifactId>imbue-api</artifactId>
+        </dependency>
+    </dependencies>
+
 </project>
