@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 final class TimingUtil {
 
     static <T> T time(String description, Supplier<T> action) {
-        return time(description, action, Level.INFO);
+        return time(description, action, LoggerFactory.getLogger(3), Level.INFO);
     }
 
     static <T> T time(String description, Supplier<T> action, Level level) {
