@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,24 +60,19 @@ final class Discovery {
     }
 
     private static List<Class<?>> discoverImplementationsOf(Class<?> type) {
-        var result = new ArrayList<Class<?>>();
-
+        var result = new HashSet<Class<?>>();
         for (var clazz : ALL_CLASSES) {
-            if (ReflectionUtils.isAssignableFrom(type, clazz)) {
-                System.out.println();
-            }
-
             if (ReflectionUtils.isAssignableFrom(clazz, type)) {
                 result.add(clazz);
             }
         }
-        return result;
+        return List.copyOf(result);
     }
 
     private static List<Class<?>> discoverLeafClassesOf(Class<?> type) {
         var implementations = getImplementationsOf(type);
 
-        var result = new ArrayList<Class<?>>();
+        var result = new HashSet<Class<?>>();
         for (var matchingClass : implementations) {
             var modifiers = matchingClass.getModifiers();
             if (Modifier.isInterface(modifiers) || Modifier.isAbstract(modifiers)) {
@@ -87,7 +83,7 @@ final class Discovery {
             result.add(matchingClass);
         }
 
-        return result;
+        return List.copyOf(result);
     }
 
     private static List<Class<?>> discoverClasses() {

@@ -18,6 +18,7 @@
     <modules>
         <module>test-api</module>
         <module>test-impl</module>
+        <module>test-suite</module>
     </modules>
 
 </project>

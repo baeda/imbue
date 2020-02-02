@@ -1,8 +1,6 @@
-package dk.skrypalle.imbue.test;
+package dk.skrypalle.imbue;
 
-import dk.skrypalle.imbue.Dependent;
-import dk.skrypalle.imbue.ImbueJunit5Extension;
-import dk.skrypalle.imbue.Link;
+import dk.skrypalle.imbue.test.SingleSingleton;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

@@ -1,7 +1,8 @@
-package dk.skrypalle.imbue.test;
+package dk.skrypalle.imbue;
 
-import dk.skrypalle.imbue.ImbueJunit5Extension;
-import dk.skrypalle.imbue.Link;
+import dk.skrypalle.imbue.test.MultiLink;
+import dk.skrypalle.imbue.test.SingleDependent;
+import dk.skrypalle.imbue.test.SingleSingleton;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -80,10 +81,10 @@ class LazyMultiLinkTest {
         passes.addAll(pass2);
 
         var dependentImpls = passes.stream()
-                .filter(a -> a instanceof DependentMultiLinkImpl)
+                .filter(this::isDependentImpl)
                 .collect(Collectors.toList());
         var singletonImpls = passes.stream()
-                .filter(a -> a instanceof SingletonMultiLinkImpl)
+                .filter(this::isSingletonImpl)
                 .collect(Collectors.toList());
 
         assertThat(dependentImpls)
@@ -113,6 +114,20 @@ class LazyMultiLinkTest {
 
         assertThat(resultList)
                 .hasSize(2);
+    }
+
+    private boolean isDependentImpl(MultiLink multiLink) {
+        return TestUtil.isAssignableFrom(
+                multiLink.getClass(),
+                "dk.skrypalle.imbue.test.DependentMultiLinkImpl"
+        );
+    }
+
+    private boolean isSingletonImpl(MultiLink multiLink) {
+        return TestUtil.isAssignableFrom(
+                multiLink.getClass(),
+                "dk.skrypalle.imbue.test.SingletonMultiLinkImpl"
+        );
     }
 
 }
