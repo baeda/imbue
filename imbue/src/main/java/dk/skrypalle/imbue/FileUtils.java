@@ -3,7 +3,6 @@ package dk.skrypalle.imbue;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 final class FileUtils {
@@ -26,7 +25,7 @@ final class FileUtils {
 
         var entries = dir.listFiles();
         if (entries == null) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         var files = out == null

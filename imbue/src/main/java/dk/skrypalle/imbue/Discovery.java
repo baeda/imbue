@@ -6,7 +6,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,11 +25,11 @@ final class Discovery {
 
     private static final String JAVA_CLASS_PATH = "java.class.path";
     private static final List<Class<?>> ALL_CLASSES = TimingUtil.time(
-            "class-discovery",
+            classes -> String.format("class-discovery of %d classes", classes.size()),
             Discovery::discoverClasses
     );
     private static final List<Class<? extends Annotation>> ALL_SCOPES = TimingUtil.time(
-            "scope-discovery",
+            scopes -> String.format("scope-discovery of %d scopes", scopes.size()),
             Discovery::discoverScopes
     );
 
@@ -86,10 +85,12 @@ final class Discovery {
         return List.copyOf(result);
     }
 
+    //region class discovery
+
     private static List<Class<?>> discoverClasses() {
         String javaClassPath = System.getProperty(JAVA_CLASS_PATH);
         if (isBlank(javaClassPath)) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         var result = new ArrayList<Class<?>>();
@@ -97,7 +98,7 @@ final class Discovery {
             discoverClassesInPath(new File(path), result);
         }
 
-        return Collections.unmodifiableList(result);
+        return List.copyOf(result);
     }
 
     private static void discoverClassesInPath(File path, Collection<? super Class<?>> out) {
@@ -174,11 +175,7 @@ final class Discovery {
     }
 
     private static boolean endsWithJar(File file) {
-        return endsWithJar(file.getName());
-    }
-
-    private static boolean endsWithJar(String string) {
-        return endsWith(string, ".jar");
+        return endsWith(file.getName(), ".jar");
     }
 
     private static boolean endsWithClass(File file) {
@@ -189,6 +186,10 @@ final class Discovery {
         return endsWith(string, ".class");
     }
 
+    //endregion class discovery
+
+    //region scope discovery
+
     private static List<Class<? extends Annotation>> discoverScopes() {
         @SuppressWarnings("unchecked")
         List<Class<? extends Annotation>> result = ALL_CLASSES.stream()
@@ -198,6 +199,8 @@ final class Discovery {
                 .collect(Collectors.toUnmodifiableList());
         return result;
     }
+
+    //endregion scope discovery
 
     private Discovery() { /* static utility */ }
 
