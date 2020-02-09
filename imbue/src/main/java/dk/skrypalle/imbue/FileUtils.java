@@ -5,7 +5,9 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-final class FileUtils {
+enum FileUtils {
+
+    ;
 
     static List<File> listFiles(File dir, boolean recurse) {
         return listFiles(dir, pathname -> true, recurse);
@@ -15,7 +17,11 @@ final class FileUtils {
         return listFiles(dir, filter, recurse, null);
     }
 
-    static List<File> listFiles(File dir, FileFilter filter, boolean recurse, List<File> out) {
+    private static List<File> listFiles(
+            File dir,
+            FileFilter filter,
+            boolean recurse,
+            List<File> out) {
         if (dir == null || !dir.isDirectory()) {
             throw new IllegalArgumentException("'dir' must point to a directory.");
         }
@@ -24,7 +30,7 @@ final class FileUtils {
         }
 
         var entries = dir.listFiles();
-        if (entries == null) {
+        if (entries == null || entries.length == 0) {
             return List.of();
         }
 
@@ -33,7 +39,7 @@ final class FileUtils {
                 : out;
 
         for (var entry : entries) {
-            if (filter.accept(entry)) {
+            if (filter.accept(entry) && !entry.isDirectory()) {
                 files.add(entry);
             }
 
@@ -44,7 +50,5 @@ final class FileUtils {
 
         return files;
     }
-
-    private FileUtils() { /* static utility */ }
 
 }

@@ -12,10 +12,6 @@ class ConstructorInfo<T> {
         this.args = args;
     }
 
-    Class<T> getType() {
-        return constructor.getDeclaringClass();
-    }
-
     Constructor<T> getConstructor() {
         return constructor;
     }

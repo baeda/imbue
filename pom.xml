@@ -25,6 +25,7 @@
 
         <version.java>12</version.java>
         <version.maven>3.6.3</version.maven>
+        <version.slf4j>1.7.30</version.slf4j>
     </properties>
 
     <dependencyManagement>
@@ -33,6 +34,16 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>3.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${version.slf4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${version.slf4j}</version>
             </dependency>
 
             <dependency>
@@ -186,6 +197,11 @@
                         <version>1.11.1</version>
                     </dependency>
                 </dependencies>
+                <configuration>
+                    <ignoredUnusedDeclaredDependencies>
+                        <dependency>org.slf4j:slf4j-simple::${version.slf4j}</dependency>
+                    </ignoredUnusedDeclaredDependencies>
+                </configuration>
             </plugin>
 
             <plugin>

@@ -12,12 +12,18 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 public interface ScopeHandler {
 
+    /**
+     * TODO JAVADOC.
+     */
     @Target(TYPE)
     @Retention(RUNTIME)
     @interface HandlesScope {
         Class<? extends Annotation> value();
     }
 
+    /**
+     * TODO JAVADOC.
+     */
     interface InstanceProvider<T> {
 
         T newInstance(Class<T> type);

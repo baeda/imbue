@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LazyMultiLinkTest {
 
     @Link
-    private Supplier<SingleDependent> lazyStringSupplier;
+    private Supplier<SingleDependent> lazyDependent;
 
     @Link
-    private Supplier<SingleSingleton> lazyStringHolder;
+    private Supplier<SingleSingleton> lazySingleton;
 
     @Link
     private Iterable<MultiLink> multiLink;
@@ -31,28 +31,35 @@ class LazyMultiLinkTest {
 
     @Test
     void lazy_dependent_link__is_properly_linked() {
-        assertThat(lazyStringSupplier)
+        assertThat(lazyDependent)
                 .isNotNull();
 
-        var firstStringHolder = lazyStringSupplier.get();
-        var secondStringHolder = lazyStringSupplier.get();
+        var firstGet = lazyDependent.get();
+        var secondGet = lazyDependent.get();
 
-        assertThat(firstStringHolder)
+        assertThat(firstGet)
                 .isNotNull()
-                .isNotSameAs(secondStringHolder);
+                .isNotSameAs(secondGet);
     }
 
     @Test
     void lazy_singleton_link__is_properly_linked() {
-        assertThat(lazyStringHolder)
+        assertThat(lazySingleton)
                 .isNotNull();
 
-        var firstStringHolder = lazyStringHolder.get();
-        var secondStringHolder = lazyStringHolder.get();
+        var firstGet = lazySingleton.get();
+        var secondGet = lazySingleton.get();
 
-        assertThat(firstStringHolder)
+        assertThat(firstGet)
                 .isNotNull()
-                .isSameAs(secondStringHolder);
+                .isSameAs(secondGet);
+
+        assertThat(firstGet.self())
+                .isNotNull()
+                .isSameAs(firstGet);
+        assertThat(secondGet.self())
+                .isNotNull()
+                .isSameAs(secondGet);
     }
 
     @Test
@@ -117,14 +124,14 @@ class LazyMultiLinkTest {
     }
 
     private boolean isDependentImpl(MultiLink multiLink) {
-        return TestUtil.isAssignableFrom(
+        return TestUtils.isAssignableFrom(
                 multiLink.getClass(),
                 "dk.skrypalle.imbue.test.DependentMultiLinkImpl"
         );
     }
 
     private boolean isSingletonImpl(MultiLink multiLink) {
-        return TestUtil.isAssignableFrom(
+        return TestUtils.isAssignableFrom(
                 multiLink.getClass(),
                 "dk.skrypalle.imbue.test.SingletonMultiLinkImpl"
         );

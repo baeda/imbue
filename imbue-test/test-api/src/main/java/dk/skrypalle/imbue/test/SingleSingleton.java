@@ -1,3 +1,7 @@
 package dk.skrypalle.imbue.test;
 
-public interface SingleSingleton {}
+public interface SingleSingleton {
+
+    SingleSingleton self();
+
+}

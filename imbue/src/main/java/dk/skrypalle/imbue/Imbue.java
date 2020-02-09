@@ -2,10 +2,10 @@ package dk.skrypalle.imbue;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static dk.skrypalle.imbue.ReflectionUtils.isAssignableFrom;
 
@@ -14,27 +14,38 @@ import static dk.skrypalle.imbue.ReflectionUtils.isAssignableFrom;
  */
 public final class Imbue {
 
+    private static final Supplier<Discovery> discoveryRef = new Discovery.LazyInit();
+
     private final Linker linker;
+    private final Discovery discovery;
 
     /**
      * TODO JAVADOC.
      */
     public Imbue() {
+        this(false);
+    }
+
+    /**
+     * TODO JAVADOC.
+     */
+    public Imbue(boolean staticDiscovery) {
+        discovery = staticDiscovery
+                ? discoveryRef.get()
+                : new Discovery();
+
         linker = new Linker(this);
     }
 
-    /**
-     * TODO JAVADOC.
-     */
-    public <T> T findLink(Class<T> type) {
-        return findLink(type, null);
+    Discovery getDiscovery() {
+        return discovery;
     }
 
     /**
      * TODO JAVADOC.
      */
-    public <T> T findLink(Class<T> type, Type genericType) {
-        var allLinks = findAllLinks(type, genericType);
+    public <T> T findLink(Type type) {
+        List<T> allLinks = findAllLinks(type);
         if (allLinks.isEmpty()) {
             throw new ImbueUnsatisfiedLinkError("unsatisfied link for type '%s'", type);
         }
@@ -52,28 +63,30 @@ public final class Imbue {
     /**
      * TODO JAVADOC.
      */
-    public <T> List<T> findAllLinks(Class<T> type) {
-        return findAllLinks(type, null);
-    }
-
-    /**
-     * TODO JAVADOC.
-     */
-    public <T> List<T> findAllLinks(Class<T> type, Type genericType) {
-        if (isAssignableFrom(genericType, ParameterizedType.class)) {
-            ParameterizedType parameterizedType = (ParameterizedType) genericType;
-            if (type == Supplier.class) {
+    public <T> List<T> findAllLinks(Type type) {
+        if (isAssignableFrom(type, ParameterizedType.class)) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            var raw = parameterizedType.getRawType();
+            if (raw == Supplier.class) {
                 return Collections.singletonList(findSupplierLink(parameterizedType));
             }
-            if (type == Iterable.class) {
+            if (raw == Iterable.class) {
                 return Collections.singletonList(findIterableLink(parameterizedType));
             }
         }
 
-        return Discovery.getLeafClassesOf(type).stream()
-                .filter(ReflectionUtils::isProperlyScoped)
+        var result = new ArrayList<T>();
+        discovery.<T>getLeafClassesOf(type)
+                .stream()
+                .filter(t -> ReflectionUtils.isProperlyScoped(t, discovery))
                 .map(linker::newInstance)
-                .collect(Collectors.toUnmodifiableList());
+                .forEach(result::add);
+        discovery.<T>getProvidersFor(type)
+                .stream()
+                .map(linker::newInstance)
+                .forEach(result::add);
+
+        return List.copyOf(result);
     }
 
     /**
@@ -88,14 +101,11 @@ public final class Imbue {
     <T> T findSupplierLink(ParameterizedType parameterizedType) {
         var actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
         if (actualTypeArgument instanceof Class<?>) {
-            Supplier<T> supplier = () -> findLink((Class<T>) actualTypeArgument);
+            Supplier<T> supplier = () -> findLink(actualTypeArgument);
             return (T) supplier;
         } else if (isAssignableFrom(actualTypeArgument, ParameterizedType.class)) {
             var nestedParameterizedType = (ParameterizedType) actualTypeArgument;
-            Supplier<T> supplier = () -> findLink(
-                    (Class<T>) nestedParameterizedType.getRawType(),
-                    nestedParameterizedType
-            );
+            Supplier<T> supplier = () -> findLink(nestedParameterizedType);
             return (T) supplier;
         }
 
@@ -106,14 +116,15 @@ public final class Imbue {
     <T> T findIterableLink(ParameterizedType parameterizedType) {
         var actualTypeArgument = parameterizedType.getActualTypeArguments()[0];
         if (actualTypeArgument instanceof Class<?>) {
-            Iterable<T> iterable = () -> findAllLinks((Class<T>) actualTypeArgument).iterator();
+            Iterable<T> iterable = () -> this.<T>findAllLinks(actualTypeArgument).iterator();
             return (T) iterable;
         } else if (isAssignableFrom(actualTypeArgument, ParameterizedType.class)) {
             var nestedParameterizedType = (ParameterizedType) actualTypeArgument;
-            Iterable<T> iterable = () -> findAllLinks(
-                    (Class<T>) nestedParameterizedType.getRawType(),
-                    nestedParameterizedType
-            ).iterator();
+            var rawType = (Class<T>) nestedParameterizedType.getRawType();
+            if (isAssignableFrom(rawType, Supplier.class)) {
+                throw new ImbueUnsatisfiedLinkError("%s is not implemented", parameterizedType);
+            }
+            Iterable<T> iterable = () -> this.<T>findAllLinks(nestedParameterizedType).iterator();
             return (T) iterable;
         }
 

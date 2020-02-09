@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @HandlesScope(Singleton.class)
-public class SingletonScopeHandler implements ScopeHandler {
+class SingletonScopeHandler implements ScopeHandler {
 
     private final Map<Class<?>, Object> singletons = new ConcurrentHashMap<>();
 

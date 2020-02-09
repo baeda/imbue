@@ -21,7 +21,7 @@ final class FieldLinker {
             try {
 
                 field.setAccessible(true);
-                field.set(instance, imbue.findLink(field.getType(), field.getGenericType()));
+                field.set(instance, imbue.findLink(field.getGenericType()));
 
             } catch (ReflectiveOperationException e) {
                 throw new ImbueLinkingError(e, "failed to link by field '%s'", field);
