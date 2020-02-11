@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 final class TestUtils {
 
     static Imbue imbue() {
-        return new Imbue(true);
+        return new Imbue();
     }
 
     static Type parameterize(Class<?> rawType, Type... typeArguments) {

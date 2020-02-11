@@ -6,25 +6,32 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.List;
 
-class TestDiscovery extends Discovery {
+public class TestDiscovery implements Discovery {
+
+    public TestDiscovery() { }
 
     @Override
-    List<Class<?>> getAllClasses() {
+    public List<Class<?>> getAllClasses() {
         return List.of();
     }
 
     @Override
-    List<Class<? extends Annotation>> getAllScopes() {
+    public List<Class<? extends Annotation>> getAllScopes() {
         return List.of(Singleton.class);
     }
 
     @Override
-    <T> List<Class<T>> getLeafClassesOf(Type type) {
+    public <T> List<Class<T>> getImplementationsOf(Type type) {
+        throw new NotImplementedException("getImplementationsOf");
+    }
+
+    @Override
+    public <T> List<Class<T>> getLeafClassesOf(Type type) {
         throw new NotImplementedException("getLeafClassesOf");
     }
 
     @Override
-    <T> List<LinkProviderInfo<T>> getProvidersFor(Type type) {
+    public <T> List<LinkProviderInfo<T>> getProvidersFor(Type type) {
         throw new NotImplementedException("getProvidersFor");
     }
 

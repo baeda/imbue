@@ -26,7 +26,7 @@ public class ImbueJunit4Runner extends BlockJUnit4ClassRunner {
     @Override
     protected Object createTest() throws Exception {
         var test = super.createTest();
-        return new Imbue(true).link(test);
+        return new Imbue().link(test);
     }
 
 }

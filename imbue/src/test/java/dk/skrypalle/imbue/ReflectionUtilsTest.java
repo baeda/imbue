@@ -14,8 +14,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ReflectionUtilsTest {
 
-    private static final Discovery discovery = new TestDiscovery();
-
     interface TestInterface {}
 
     @Singleton
@@ -100,7 +98,7 @@ class ReflectionUtilsTest {
 
     @Test
     void isProperlyScoped_scoped_class__returns_true() {
-        var result = isProperlyScoped(ScopedTestClass.class, discovery);
+        var result = isProperlyScoped(ScopedTestClass.class, discovery());
 
         assertThat(result)
                 .isTrue();
@@ -108,7 +106,7 @@ class ReflectionUtilsTest {
 
     @Test
     void isProperlyScoped_unscoped_class__returns_false() {
-        var result = isProperlyScoped(UnscopedTestClass.class, discovery);
+        var result = isProperlyScoped(UnscopedTestClass.class, discovery());
 
         assertThat(result)
                 .isFalse();
@@ -116,7 +114,7 @@ class ReflectionUtilsTest {
 
     @Test
     void findScopes_scoped_class__returns_list_of_Singleton() {
-        var result = findScopes(ScopedTestClass.class, discovery);
+        var result = findScopes(ScopedTestClass.class, discovery());
 
         assertThat(result)
                 .containsExactly(Singleton.class);
@@ -124,7 +122,7 @@ class ReflectionUtilsTest {
 
     @Test
     void findScopes_unscoped_class__returns_empty_list() {
-        var result = findScopes(UnscopedTestClass.class, discovery);
+        var result = findScopes(UnscopedTestClass.class, discovery());
 
         assertThat(result)
                 .isEmpty();
@@ -137,6 +135,10 @@ class ReflectionUtilsTest {
         assertThat(methods)
                 .extracting(Method::toGenericString)
                 .contains("void dk.skrypalle.imbue.ReflectionUtilsTest$ScopedTestClass.test()");
+    }
+
+    private static Discovery discovery() {
+        return Discovery.select(TestDiscovery.class);
     }
 
 }

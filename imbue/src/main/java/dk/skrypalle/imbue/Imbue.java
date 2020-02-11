@@ -14,8 +14,6 @@ import static dk.skrypalle.imbue.ReflectionUtils.isAssignableFrom;
  */
 public final class Imbue {
 
-    private static final Supplier<Discovery> discoveryRef = new Discovery.LazyInit();
-
     private final Linker linker;
     private final Discovery discovery;
 
@@ -23,16 +21,14 @@ public final class Imbue {
      * TODO JAVADOC.
      */
     public Imbue() {
-        this(false);
+        this(Discovery.load());
     }
 
     /**
      * TODO JAVADOC.
      */
-    public Imbue(boolean staticDiscovery) {
-        discovery = staticDiscovery
-                ? discoveryRef.get()
-                : new Discovery();
+    public Imbue(Discovery discovery) {
+        this.discovery = discovery;
 
         linker = new Linker(this);
     }
