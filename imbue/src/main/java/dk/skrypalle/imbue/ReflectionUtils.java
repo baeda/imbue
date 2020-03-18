@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-enum ReflectionUtils {
-
-    ;
+final class ReflectionUtils {
 
     static boolean isAssignableFrom(Type type, Class<?> baseClass) {
         if (type == null || baseClass == null) {
@@ -79,5 +77,7 @@ enum ReflectionUtils {
 
         return result;
     }
+
+    private ReflectionUtils() { /* static utility */ }
 
 }

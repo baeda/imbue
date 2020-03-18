@@ -5,9 +5,7 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-enum FileUtils {
-
-    ;
+final class FileUtils {
 
     static List<File> listFiles(File dir, boolean recurse) {
         return listFiles(dir, pathname -> true, recurse);
@@ -50,5 +48,7 @@ enum FileUtils {
 
         return files;
     }
+
+    private FileUtils() { /* static utility */ }
 
 }

@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(ImbueJunit5Extension.class)
-public class GenericLinkTest {
+class GenericLinkTest {
 
     @LinkProvider(Dependent.class)
     static Function<String, String> provideFunction(GenericStatic<Integer> intSingleton) {

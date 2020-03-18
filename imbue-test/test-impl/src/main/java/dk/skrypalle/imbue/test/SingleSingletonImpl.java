@@ -6,7 +6,7 @@ import dk.skrypalle.imbue.Singleton;
 import java.util.function.Supplier;
 
 @Singleton
-public class SingleSingletonImpl implements SingleSingleton {
+class SingleSingletonImpl implements SingleSingleton {
 
     @Link
     private Supplier<SingleSingleton> self;

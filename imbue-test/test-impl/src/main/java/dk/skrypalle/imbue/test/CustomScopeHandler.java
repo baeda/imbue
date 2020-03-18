@@ -4,7 +4,7 @@ import dk.skrypalle.imbue.ScopeHandler;
 import dk.skrypalle.imbue.ScopeHandler.HandlesScope;
 
 @HandlesScope(CustomScope.class)
-public class CustomScopeHandler implements ScopeHandler {
+class CustomScopeHandler implements ScopeHandler {
 
     @Override
     public <T> T supplyInstance(Class<T> type, InstanceProvider<T> instanceProvider) {

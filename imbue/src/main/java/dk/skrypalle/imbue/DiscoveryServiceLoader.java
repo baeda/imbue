@@ -5,9 +5,7 @@ import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
 
-enum DiscoveryServiceLoader {
-
-    ;
+final class DiscoveryServiceLoader {
 
     static Discovery load() {
         var serviceProviders = ServiceLoader
@@ -38,5 +36,7 @@ enum DiscoveryServiceLoader {
         T t = (T) serviceProviders.get(0).get();
         return t;
     }
+
+    private DiscoveryServiceLoader() { /* static utility */ }
 
 }

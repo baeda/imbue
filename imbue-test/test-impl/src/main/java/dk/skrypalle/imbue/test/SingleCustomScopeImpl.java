@@ -1,4 +1,4 @@
 package dk.skrypalle.imbue.test;
 
 @CustomScope
-public class SingleCustomScopeImpl implements SingleCustomScope {}
+class SingleCustomScopeImpl implements SingleCustomScope {}

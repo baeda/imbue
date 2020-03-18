@@ -1,8 +1,6 @@
 package dk.skrypalle.imbue;
 
-enum Utils {
-
-    ;
+final class Utils {
 
     static <T> T rethrow(Throwable t) {
         uncheckedThrow(t);
@@ -17,5 +15,7 @@ enum Utils {
             throw new Error("Unknown Exception");
         }
     }
+
+    private Utils() { /* static utility */ }
 
 }

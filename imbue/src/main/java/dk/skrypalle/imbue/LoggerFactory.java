@@ -2,9 +2,7 @@ package dk.skrypalle.imbue;
 
 import org.slf4j.Logger;
 
-enum LoggerFactory {
-
-    ;
+final class LoggerFactory {
 
     static Logger getLogger() {
         return getLogger(3);
@@ -14,5 +12,7 @@ enum LoggerFactory {
         var loggerName = Thread.currentThread().getStackTrace()[callDepth].getClassName();
         return org.slf4j.LoggerFactory.getLogger(loggerName);
     }
+
+    private LoggerFactory() { /* static utility */ }
 
 }

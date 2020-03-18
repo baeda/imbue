@@ -7,9 +7,7 @@ import java.util.function.Supplier;
 
 import static dk.skrypalle.imbue.LoggerFactory.getLogger;
 
-enum TimingUtils {
-
-    ;
+final class TimingUtils {
 
     static <T> T time(String description, Supplier<T> action) {
         return time(res -> description, action, getLogger(3));
@@ -38,5 +36,7 @@ enum TimingUtils {
         logger.info(message);
         return result;
     }
+
+    private TimingUtils() { /* static utility */ }
 
 }
